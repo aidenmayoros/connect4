@@ -6,14 +6,17 @@ const PLAYER_ONE = 'Red';
 const PLAYER_TWO = 'Yellow';
 
 const GameBoard = () => {
-	const [board, setBoard] = useState(
-		Array.from({ length: ROWS }, () => Array(COLS).fill(null))
+	const initialBoard = Array.from({ length: ROWS }, () =>
+		Array(COLS).fill(null)
 	);
+
+	const [board, setBoard] = useState(initialBoard);
 	const [currentPlayer, setCurrentPlayer] = useState(PLAYER_ONE);
 	const [winner, setWinner] = useState(null);
+	const [isDraw, setIsDraw] = useState(false);
 
 	const handleClick = (colIndex) => {
-		if (winner) return;
+		if (winner || isDraw) return;
 
 		for (let row = ROWS - 1; row >= 0; row--) {
 			if (!board[row][colIndex]) {
@@ -23,6 +26,8 @@ const GameBoard = () => {
 
 				if (checkWin(newBoard, row, colIndex, currentPlayer)) {
 					setWinner(currentPlayer);
+				} else if (checkDraw(newBoard)) {
+					setIsDraw(true);
 				} else {
 					setCurrentPlayer(
 						currentPlayer === PLAYER_ONE ? PLAYER_TWO : PLAYER_ONE
@@ -31,6 +36,10 @@ const GameBoard = () => {
 				break;
 			}
 		}
+	};
+
+	const checkDraw = (board) => {
+		return board.every((row) => row.every((cell) => cell !== null));
 	};
 
 	// Function to check for a win in any direction
@@ -97,6 +106,7 @@ const GameBoard = () => {
 		setBoard(Array.from({ length: ROWS }, () => Array(COLS).fill(null)));
 		setCurrentPlayer(PLAYER_ONE);
 		setWinner(null);
+		setIsDraw(false);
 	};
 
 	const renderCell = (value, rowIndex, colIndex) => (
@@ -118,6 +128,10 @@ const GameBoard = () => {
 				<h2 className='text-2xl font-bold text-center text-green-500 mt-4'>
 					{winner} Wins!
 				</h2>
+			) : isDraw ? (
+				<h2 className='text-2xl font-bold text-center text-gray-500 mt-4'>
+					It's a Draw!
+				</h2>
 			) : (
 				<h2 className='text-xl font-bold text-center mt-4'>
 					Current Player: {currentPlayer}
@@ -131,14 +145,12 @@ const GameBoard = () => {
 				))}
 			</div>
 			{/* Reset button */}
-			{winner ? (
+			{(winner || isDraw) && (
 				<button
 					onClick={resetGame}
 					className='mt-4 px-4 py-2 bg-blue-500 text-white font-bold rounded hover:bg-blue-600'>
 					Reset Game
 				</button>
-			) : (
-				<div></div>
 			)}
 		</div>
 	);
